@@ -309,8 +309,9 @@ mtk_bt_hci_open(struct hci_dev *hdev)
 #if MTK_BT_DEBUG == 1
 	pr_err("# %s\n", __func__);
 #endif
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	err = mtk_wcn_wmt_func_on(WMTDRV_TYPE_BT);
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (err != MTK_WCN_BOOL_TRUE) {
 		pr_err("%s func on failed with %d\n", __func__, err);
 		return -ENODEV;

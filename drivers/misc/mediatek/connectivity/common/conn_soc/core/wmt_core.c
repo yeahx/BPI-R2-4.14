@@ -992,7 +992,7 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 	INT32 iRet = -1;
 	INT32 iPwrOffRet = -1;
 	UINT32 drvType;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	drvType = pWmtOp->au4OpData[0];
 
 	/* Check abnormal type */
@@ -1001,7 +1001,7 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 		osal_assert(0);
 		return -1;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* Check abnormal state */
 	if ((DRV_STS_POWER_OFF > gMtkWmtCtx.eDrvStatus[drvType])
 	    || (DRV_STS_MAX <= gMtkWmtCtx.eDrvStatus[drvType])) {
@@ -1009,27 +1009,29 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 		osal_assert(0);
 		return -2;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* check if func already on */
 	if (DRV_STS_FUNC_ON == gMtkWmtCtx.eDrvStatus[drvType]) {
 		WMT_WARN_FUNC("func(%d) already on\n", drvType);
 		return 0;
 	}
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/*enable power off flag, if flag=0, power off connsys will not be executed */
 	mtk_wcn_set_connsys_power_off_flag(MTK_WCN_BOOL_TRUE);
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* check if chip power on is needed */
 	if (DRV_STS_FUNC_ON != gMtkWmtCtx.eDrvStatus[WMTDRV_TYPE_WMT]) {
 		iRet = opfunc_pwr_on(pWmtOp);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		if (iRet) {
 			WMT_ERR_FUNC("func(%d) pwr_on fail(%d)\n", drvType, iRet);
 			osal_assert(0);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 			/* check all sub-func and do power off */
 			return -3;
 		}
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (WMTDRV_TYPE_WMT > drvType) {
 		if (NULL != gpWmtFuncOps[drvType] && NULL != gpWmtFuncOps[drvType]->func_on) {
 			iRet = (*(gpWmtFuncOps[drvType]->func_on)) (gMtkWmtCtx.p_ic_ops, wmt_conf_get_cfg());
@@ -1041,6 +1043,7 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 			WMT_WARN_FUNC("WMT-CORE: ops for type(%d) not found\n", drvType);
 			iRet = -5;
 		}
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	} else {
 		if (WMTDRV_TYPE_LPBK == drvType)
 			gMtkWmtCtx.eDrvStatus[drvType] = DRV_STS_FUNC_ON;
@@ -1048,7 +1051,7 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 			gMtkWmtCtx.eDrvStatus[drvType] = DRV_STS_FUNC_ON;
 		iRet = 0;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (iRet) {
 		WMT_ERR_FUNC("WMT-CORE:type(0x%x) function on failed, ret(%d)\n", drvType, iRet);
 		osal_assert(0);
@@ -1062,7 +1065,7 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 		    (DRV_STS_POWER_OFF == gMtkWmtCtx.eDrvStatus[WMTDRV_TYPE_COREDUMP])) {
 			WMT_INFO_FUNC("WMT-CORE:Fun(%d) [POWER_OFF] and power down chip\n", drvType);
 			mtk_wcn_wmt_system_state_reset();
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 			iPwrOffRet = opfunc_pwr_off(pWmtOp);
 			if (iPwrOffRet) {
 				WMT_ERR_FUNC("WMT-CORE: wmt_pwr_off fail(%d) when turn off func(%d)\n", iPwrOffRet,
@@ -1072,9 +1075,9 @@ static INT32 opfunc_func_on(P_WMT_OP pWmtOp)
 		}
 		return iRet;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	wmt_core_dump_func_state("AF FUNC ON");
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 }
 

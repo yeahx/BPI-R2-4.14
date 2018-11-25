@@ -86,13 +86,13 @@ static MTK_WCN_BOOL mtk_wcn_wmt_func_ctrl(ENUM_WMTDRV_TYPE_T type, ENUM_WMT_OPID
 	P_OSAL_OP pOp;
 	MTK_WCN_BOOL bRet;
 	P_OSAL_SIGNAL pSignal;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pOp = wmt_lib_get_free_op();
 	if (!pOp) {
 		WMT_WARN_FUNC("get_free_lxop fail\n");
 		return MTK_WCN_BOOL_FALSE;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pSignal = &pOp->signal;
 
 	pOp->op.opId = opId;
@@ -102,11 +102,12 @@ static MTK_WCN_BOOL mtk_wcn_wmt_func_ctrl(ENUM_WMTDRV_TYPE_T type, ENUM_WMT_OPID
 		/*donot block system server/init/netd from longer than 5s, in case of ANR happens*/
 	else
 		pSignal->timeoutValue = (WMT_OPID_FUNC_ON == pOp->op.opId) ? MAX_FUNC_ON_TIME : MAX_FUNC_OFF_TIME;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	WMT_INFO_FUNC("OPID(%d) type(%d) start\n", pOp->op.opId, pOp->op.au4OpData[0]);
 
 	/*do not check return value, we will do this either way */
 	wmt_lib_host_awake_get();
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/*wake up chip first */
 	if (DISABLE_PSM_MONITOR()) {
 		WMT_ERR_FUNC("wake up failed,OPID(%d) type(%d) abort\n", pOp->op.opId, pOp->op.au4OpData[0]);
@@ -114,16 +115,16 @@ static MTK_WCN_BOOL mtk_wcn_wmt_func_ctrl(ENUM_WMTDRV_TYPE_T type, ENUM_WMT_OPID
 		wmt_lib_host_awake_put();
 		return MTK_WCN_BOOL_FALSE;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	bRet = wmt_lib_put_act_op(pOp);
 	ENABLE_PSM_MONITOR();
 	wmt_lib_host_awake_put();
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (MTK_WCN_BOOL_FALSE == bRet)
 		WMT_WARN_FUNC("OPID(%d) type(%d) fail\n", pOp->op.opId, pOp->op.au4OpData[0]);
 	else
 		WMT_WARN_FUNC("OPID(%d) type(%d) ok\n", pOp->op.opId, pOp->op.au4OpData[0]);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return bRet;
 }
 
@@ -156,15 +157,15 @@ MTK_WCN_BOOL mtk_wcn_wmt_func_on(ENUM_WMTDRV_TYPE_T type)
 #endif
 {
 	MTK_WCN_BOOL ret;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (type == WMTDRV_TYPE_BT)
 		osal_printtimeofday("############ BT ON ====>");
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ret = mtk_wcn_wmt_func_ctrl(type, WMT_OPID_FUNC_ON);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (type == WMTDRV_TYPE_BT)
 		osal_printtimeofday(" ############BT ON <====");
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return ret;
 }
 #if !WMT_EXP_HID_API_EXPORT

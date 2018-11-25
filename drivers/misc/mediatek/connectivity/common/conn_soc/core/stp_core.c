@@ -11,7 +11,7 @@
 * You should have received a copy of the GNU General Public License along with this program.
 * If not, see <http://www.gnu.org/licenses/>.
 */
-
+#define DEBUG
 #include "osal_typedef.h"
 #include "stp_core.h"
 #include "psm_core.h"
@@ -1368,14 +1368,19 @@ INT32 mtk_wcn_stp_psm_enable(INT32 idle_time_to_sleep)
 	return -1;
 
 #else
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (mtk_wcn_stp_is_ready() && mtk_wcn_stp_is_btif_fullset_mode()) {
 		return stp_psm_enable(STP_PSM_CORE(stp_core_ctx), idle_time_to_sleep);
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	} else if (mtk_wcn_stp_is_sdio_mode()) {
 		stp_psm_enable(STP_PSM_CORE(stp_core_ctx), idle_time_to_sleep);
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		STP_DBG_FUNC("PSM is not support under SDIO mode\n");
 		return 0;
 	}
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	STP_WARN_FUNC("STP Not Ready, Dont do Sleep/Wakeup\n");
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return -1;
 #endif
 }
