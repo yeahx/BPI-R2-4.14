@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0
+
 mediatek-drm-y := mtk_disp_color.o \
 		  mtk_disp_ovl.o \
 		  mtk_disp_rdma.o \
@@ -13,11 +14,14 @@ mediatek-drm-y := mtk_disp_color.o \
 		  mtk_mipi_tx.o \
 		  mtk_dpi.o
 
+mediatek-drm-$(CONFIG_DRM_FBDEV_EMULATION) += mtk_drm_fbdev.o
 obj-$(CONFIG_DRM_MEDIATEK) += mediatek-drm.o
 
 mediatek-drm-hdmi-objs := mtk_cec.o \
 			  mtk_hdmi.o \
 			  mtk_hdmi_ddc.o \
-			  mtk_mt8173_hdmi_phy.o
+                          mtk_mt2701_hdmi_phy.o \
+			  mtk_mt8173_hdmi_phy.o \
+			  mtk_hdmi_phy.o
 
 obj-$(CONFIG_DRM_MEDIATEK_HDMI) += mediatek-drm-hdmi.o

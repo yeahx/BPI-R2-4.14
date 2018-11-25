@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2014 MediaTek Inc.
- * Author: Jie Qiu <jie.qiu@mediatek.com>
+ * Copyright (c) 2016 MediaTek Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -11,13 +10,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#ifndef _MTK_HDMI_CTRL_H
-#define _MTK_HDMI_CTRL_H
-#include "mtk_hdmi_phy.h"
 
-struct platform_driver;
+#ifndef MTK_DRM_FBDEV_H
+#define MTK_DRM_FBDEV_H
 
-extern struct platform_driver mtk_cec_driver;
-extern struct platform_driver mtk_hdmi_ddc_driver;
+#ifdef CONFIG_DRM_FBDEV_EMULATION
+int mtk_fbdev_init(struct drm_device *dev);
+void mtk_fbdev_fini(struct drm_device *dev);
+#else
+int mtk_fbdev_init(struct drm_device *dev)
+{
+	return 0;
+}
 
-#endif /* _MTK_HDMI_CTRL_H */
+void mtk_fbdev_fini(struct drm_device *dev)
+{
+
+}
+#endif /* CONFIG_DRM_FBDEV_EMULATION */
+
+#endif /* MTK_DRM_FBDEV_H */
