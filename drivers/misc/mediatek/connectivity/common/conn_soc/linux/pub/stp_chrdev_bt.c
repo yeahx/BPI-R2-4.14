@@ -37,7 +37,7 @@
 MODULE_LICENSE("Dual BSD/GPL");
 
 #ifdef MTK_BT_HCI
-#define MTK_BT_DEBUG 0
+#define MTK_BT_DEBUG 1
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
 #endif
