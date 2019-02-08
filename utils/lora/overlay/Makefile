@@ -1,5 +1,5 @@
-OVERLAY_SRC=rpi-lora-spi-overlay.dts
-OVERLAY_DST=rpi-lora-spi.dtbo
+OVERLAY_SRC=bpi-r2-lora-spi-overlay.dts
+OVERLAY_DST=bpi-r2-lora-spi.dtbo
 
 all:
 	dtc -I dts -O dtb -@ -o $(OVERLAY_DST) $(OVERLAY_SRC)
