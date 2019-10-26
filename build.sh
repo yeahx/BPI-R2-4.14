@@ -8,8 +8,30 @@ fi
 . build.conf
 
 r64newswver=1.0
-
 if [[ -z "$board" ]];then board="bpi-r2";fi
+
+kernver=$(make kernelversion | grep -v 'make')
+#echo $kernver
+
+DOTCONFIG=".config"
+
+if [[ "$builddir" != "" ]];
+then
+	mkdir -p $builddir
+	if [[ ! "$builddir" =~ ^/ ]];then
+		#make it absolute
+		builddir=$(realpath $(pwd)"/"$builddir)
+#		echo "absolute: $builddir"
+	fi
+	mount | grep '\s'$builddir'\s' &>/dev/null #$?=0 found;1 not found
+	if [[ $? -ne 0 ]];then
+		echo "mounting tmpfs for building..."
+		sudo mount -t tmpfs -o size=2G none $builddir
+	fi
+
+	DOTCONFIG="$builddir/$DOTCONFIG"
+	export KBUILD_OUTPUT=$builddir
+fi
 
 clr_red=$'\e[1;31m'
 clr_green=$'\e[1;32m'
@@ -82,9 +104,6 @@ function getuenvpath {
 	echo "uenv: $uenv";
 }
 
-kernver=$(make kernelversion)
-#echo $kernver
-
 function get_version()
 {
 	echo "generate branch vars..."
@@ -97,6 +116,21 @@ function get_version()
 	echo "kernbranch:$kernbranch,gitbranch:$gitbranch"
 }
 
+function get_r64_switch
+{
+	grep 'RTL8367S_GSW=y' $DOTCONFIG &>/dev/null
+	if [[ $? -eq 0 ]];then
+		echo "rtl8367"
+	else
+		grep 'MT753X_GSW=y' $DOTCONFIG &>/dev/null
+		if [[ $? -eq 0 ]];then
+			echo "mt7531"
+		else
+			echo "unknown"
+		fi
+	fi
+}
+
 function increase_kernel {
         #echo $kernver
         old_IFS=$IFS
@@ -105,6 +139,23 @@ function increase_kernel {
         IFS=','
         newkernver=${KV[0]}"."${KV[1]}"."$(( ${KV[2]} +1 ))
         echo $newkernver
+}
+
+function disable_option() {
+	echo "disable $1"
+	if [[ "$1" == "" ]];then echo "option missing ($1)";return;fi
+	#CFG=RTL8367S_GSW;
+	CFG=${1^^};
+	CFG=${CFG//CONFIG_/}
+	#echo "CFG:$CFG"
+	#grep -i 'mt753x\|rtl8367' .config
+	grep $CFG .config
+	if [[ $? -eq 0 ]]; then
+		sed -i 's:CONFIG_'$CFG'=y:# CONFIG_'$CFG' is not set:g' $DOTCONFIG
+		grep $CFG $DOTCONFIG
+	else
+		echo "option CONFIG_$CFG not found in .config"
+	fi
 }
 
 function update_kernel_source {
@@ -127,11 +178,14 @@ function update_kernel_source {
 
 function pack {
 	get_version
+	if [[ "$board" == "bpi-r64" ]];then
+		switch=$(get_r64_switch)"_"
+	fi
 	prepare_SD
 	echo "pack..."
 	olddir=$(pwd)
 	cd ../SD
-	fname=${board}_${kernver}${gitbranch}.tar.gz
+	fname=${board}_${switch}${kernver}${gitbranch}.tar.gz
 	tar -cz --owner=root --group=root -f $fname BPI-BOOT BPI-ROOT
 	md5sum $fname > $fname.md5
 	ls -lh $(pwd)"/"$fname
@@ -140,14 +194,17 @@ function pack {
 
 function upload {
 	get_version
-	imagename="uImage_${kernver}${gitbranch}"
+	if [[ "$board" == "bpi-r64" ]];then
+		switch="_"$(get_r64_switch)
+	fi
+	imagename="uImage_${kernver}${gitbranch}${switch}"
 	read -e -i $imagename -p "Kernel-filename: " input
 	imagename="${input:-$imagename}"
 
 	echo "Name: $imagename"
 
 	if [[ "$board" == "bpi-r64" ]];then
-		dtbname="${kernver}${gitbranch}.dtb"
+		dtbname="${kernver}${gitbranch}${switch}.dtb"
 		read -e -i $dtbname -p "dtb-filename: " input
 		dtbname="${input:-$dtbname}"
 
@@ -254,7 +311,7 @@ function install
 				fi
 
 				#sudo cp -r ../mod/lib/modules /media/$USER/BPI-ROOT/lib/
-				if [[ -n "$(grep 'CONFIG_MT76=' .config)" ]];then
+				if [[ -n "$(grep 'CONFIG_MT76=' $DOTCONFIG)" ]];then
 					echo "MT76 set,don't forget the firmware-files...";
 				fi
 			else
@@ -404,12 +461,13 @@ function build {
 	check_dep "build"
 	if [[ $? -ne 0 ]];then exit 1;fi
 	get_version
-	if [ -e ".config" ]; then
+
+	if [ -e $DOTCONFIG ]; then
 		echo Cleanup Kernel Build
 		rm arch/arm/boot/zImage 2>/dev/null
 		rm arch/arm/boot/zImage-dtb 2>/dev/null
 		rm arch/arm64/boot/Image 2>/dev/null
-		rm ./uImage 2>/dev/null
+		rm ./uImage* 2>/dev/null
 		rm ${board}.dtb 2>/dev/null
 
 		if [[ "$board" == "bpi-r64" ]];then
@@ -419,22 +477,34 @@ function build {
 				CFLAGS="${CFLAGS} CONFIG_RTL8367S_GSW=n" #disable old switch
 			fi
 		fi
+
 		exec 3> >(tee build.log)
 		export LOCALVERSION="${gitbranch}"
 		make ${CFLAGS} 2>&3 #&& make modules_install 2>&3
 		ret=$?
 		exec 3>&-
 
-		if [[ "$board" == "bpi-r64" ]];then
-			#how to create zImage?? make zImage does not work here
-			mkimage -A arm -O linux -T kernel -C none -a 40080000 -e 40080000 -n "Linux Kernel $kernver$gitbranch" -d arch/arm64/boot/Image ./uImage
-			if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
-				cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb $board.dtb
+		if [[ $ret == 0 ]]; then
+			if [[ "$board" == "bpi-r64" ]];then
+				if [[ "$builddir" != "" ]];
+				then
+					cp $builddir/arch/arm64/boot/Image arch/arm64/boot/Image
+					cp $builddir/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb
+					cp $builddir/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb
+				fi
+				#how to create zImage?? make zImage does not work here
+				mkimage -A arm -O linux -T kernel -C none -a 40080000 -e 40080000 -n "Linux Kernel $kernver$gitbranch" -d arch/arm64/boot/Image ./uImage
+				if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
+					cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb $board.dtb
+				else
+					cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb $board.dtb
+				fi
 			else
-				cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb $board.dtb
-			fi
-		else
-			if [[ $ret == 0 ]]; then
+				if [[ "$builddir" != "" ]];
+				then
+					cp $builddir/arch/arm/boot/zImage arch/arm/boot/zImage
+					cp $builddir/arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dtb arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dtb
+				fi
 				cat arch/arm/boot/zImage arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dtb > arch/arm/boot/zImage-dtb
 				mkimage -A arm -O linux -T kernel -C none -a 80008000 -e 80008000 -n "Linux Kernel $kernver$gitbranch" -d arch/arm/boot/zImage-dtb ./uImage
 
@@ -448,8 +518,6 @@ function build {
 				fi
 			fi
 		fi
-
-
 	else
 		echo "No Configfile found, Please Configure Kernel"
 	fi
@@ -506,7 +574,7 @@ function prepare_SD {
 		echo "WMT-Tools not available"
 	fi
 
-	if [[ -n "$(grep 'CONFIG_MT76=' .config)" ]];then
+	if [[ -n "$(grep 'CONFIG_MT76=' $DOTCONFIG)" ]];then
 		echo "MT76 set, including the firmware-files...";
 		cp drivers/net/wireless/mediatek/mt76/firmware/* $SD/BPI-ROOT/lib/firmware/
 	fi
@@ -613,8 +681,13 @@ if [ -n "$kernver" ]; then
 
 		"dts")
 			if [[ "$board" == "bpi-r64" ]];then
-				echo "edit mt7622n-bpi.dts"
-				nano arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dts
+				if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
+					echo "edit mt7622n-bpi.dts"
+					nano arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dts
+				else
+					echo "edit mt7622n-mt7531-bpi.dts"
+					nano arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dts
+				fi
 			else
 				echo "edit mt7623n-bpi.dts"
 				nano arch/arm/boot/dts/mt7623n-bananapi-bpi-r2.dts
@@ -633,6 +706,11 @@ if [ -n "$kernver" ]; then
 				p=arm64
 				echo "Import r64 config"
 				f=mt7622_bpi-r64_defconfig
+				if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
+					disable=mt753x_gsw
+				else
+					disable=rtl8367s_gsw
+				fi
 			else
 				p=arm
 				if [[ -z "$file" ]];then
@@ -645,6 +723,9 @@ if [ -n "$kernver" ]; then
 			fi
 			if [[ -e "arch/${p}/configs/${f}" ]];then
 				make ${f}
+				if [[ -n "$disable" ]];then
+					disable_option "$disable"
+				fi
 			else
 				echo "file not found"
 			fi
