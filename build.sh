@@ -15,24 +15,6 @@ kernver=$(make kernelversion | grep -v 'make')
 
 DOTCONFIG=".config"
 
-if [[ "$builddir" != "" ]];
-then
-	mkdir -p $builddir
-	if [[ ! "$builddir" =~ ^/ ]];then
-		#make it absolute
-		builddir=$(realpath $(pwd)"/"$builddir)
-#		echo "absolute: $builddir"
-	fi
-	mount | grep '\s'$builddir'\s' &>/dev/null #$?=0 found;1 not found
-	if [[ $? -ne 0 ]];then
-		echo "mounting tmpfs for building..."
-		sudo mount -t tmpfs -o size=2G none $builddir
-	fi
-
-	DOTCONFIG="$builddir/$DOTCONFIG"
-	export KBUILD_OUTPUT=$builddir
-fi
-
 clr_red=$'\e[1;31m'
 clr_green=$'\e[1;32m'
 clr_yellow=$'\e[1;33m'
@@ -57,6 +39,25 @@ if [[ -z $(cat /proc/cpuinfo | grep -i 'model name.*ArmV7') ]]; then #check need
 
 	crosscompile=1
 fi;
+
+if [[ "$builddir" != "" ]];
+then
+	mkdir -p $builddir
+	if [[ ! "$builddir" =~ ^/ ]];then
+		#make it absolute
+		builddir=$(realpath $(pwd)"/"$builddir)
+#		echo "absolute: $builddir"
+	fi
+	mount | grep '\s'$builddir'\s' &>/dev/null #$?=0 found;1 not found
+	if [[ $? -ne 0 ]];then
+		echo "mounting tmpfs for building..."
+		sudo mount -t tmpfs -o size=2G none $builddir
+		make mrproper
+	fi
+
+	DOTCONFIG="$builddir/$DOTCONFIG"
+	export KBUILD_OUTPUT=$builddir
+fi
 
 #Check Dependencies
 
@@ -480,7 +481,7 @@ function build {
 
 		exec 3> >(tee build.log)
 		export LOCALVERSION="${gitbranch}"
-		make ${CFLAGS} 2>&3 #&& make modules_install 2>&3
+		make V=1 ${CFLAGS} 2>&3 #&& make modules_install 2>&3
 		ret=$?
 		exec 3>&-
 
