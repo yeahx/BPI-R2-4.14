@@ -481,7 +481,8 @@ function build {
 
 		exec 3> >(tee build.log)
 		export LOCALVERSION="${gitbranch}"
-		make V=1 ${CFLAGS} 2>&3 #&& make modules_install 2>&3
+		#MAKEFLAGS="V=1"
+		make ${MAKEFLAGS} ${CFLAGS} 2>&3 #&& make modules_install 2>&3
 		ret=$?
 		exec 3>&-
 
