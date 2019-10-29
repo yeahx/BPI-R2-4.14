@@ -51,7 +51,7 @@ then
 	mount | grep '\s'$builddir'\s' &>/dev/null #$?=0 found;1 not found
 	if [[ $? -ne 0 ]];then
 		echo "mounting tmpfs for building..."
-		sudo mount -t tmpfs -o size=2G none $builddir
+		sudo mount -t tmpfs -o size=3G none $builddir
 		make mrproper
 	fi
 
