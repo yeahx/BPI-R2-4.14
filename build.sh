@@ -65,6 +65,11 @@ function check_dep()
 {
 	PACKAGE_Error=0
 
+	grep -i 'ubuntu\|debian' /etc/issue &>/dev/null
+	if [[ $? -ne 0 ]];then
+		echo "depency-check currently only on debian/ubuntu..."
+		return 0;
+	fi
 	PACKAGES=$(dpkg -l | awk '{print $2}')
 
 	NEEDED_PKGS="make"
