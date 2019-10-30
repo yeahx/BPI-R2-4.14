@@ -42,18 +42,29 @@ fi;
 
 if [[ "$builddir" != "" ]];
 then
-	mkdir -p $builddir
-	if [[ ! "$builddir" =~ ^/ ]];then
+	if [[ ! "$builddir" =~ ^/ ]] || [[ "$builddir" == "/" ]];then
 		#make it absolute
 		builddir=$(realpath $(pwd)"/"$builddir)
 #		echo "absolute: $builddir"
 	fi
-	mount | grep '\s'$builddir'\s' &>/dev/null #$?=0 found;1 not found
-	if [[ $? -ne 0 ]];then
-		echo "mounting tmpfs for building..."
-		sudo mount -t tmpfs -o size=3G none $builddir
-		make mrproper
+
+	mkdir -p $builddir
+
+	if [[ "$ramdisksize" != "" ]];
+	then
+		mount | grep '\s'$builddir'\s' &>/dev/null #$?=0 found;1 not found
+		if [[ $? -ne 0 ]];then
+			#make sure directory is clean for mounting
+			if [[ "$(ls -A $builddir)" ]];then
+				rm -r $builddir/*
+			fi
+			echo "mounting tmpfs for building..."
+			sudo mount -t tmpfs -o size=$ramdisksize none $builddir
+		fi
 	fi
+
+	#if builddir is empty then run make mrproper to clean up sourcedir
+	if [[ ! "$(ls -A $builddir)" ]];then make mrproper;fi
 
 	DOTCONFIG="$builddir/$DOTCONFIG"
 	export KBUILD_OUTPUT=$builddir
