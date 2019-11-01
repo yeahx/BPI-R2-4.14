@@ -245,14 +245,18 @@ function install
 	echo "Name: $imagename"
 
 	if [[ $crosscompile -eq 0 ]]; then
-		kernelfile=/boot/bananapi/$board/linux/$imagename
-		if [[ -e $kernelfile ]];then
-			echo "backup of kernel: $kernelfile.bak"
-			cp $kernelfile $kernelfile.bak
-			cp ./uImage $kernelfile
+		kerneldir="/boot/bananapi/$board/linux"
+		kernelfile="$kerneldir/$imagename"
+		if [[ -d "$kerneldir" ]];then
+			if [[ -e "$kernelfile" ]];then
+				echo "backup of kernel: $kernelfile.bak"
+				sudo cp "$kernelfile" "$kernelfile.bak"
+			fi
+			echo "installing new kernel..."
+			sudo cp ./uImage "$kernelfile"
 			sudo make modules_install
 		else
-			echo "actual Kernel not found...is /boot mounted?"
+			echo "Kernel directory not found...is /boot mounted?"
 		fi
 	else
 		read -p "Press [enter] to copy data to SD-Card..."
