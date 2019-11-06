@@ -137,6 +137,13 @@
 		device_type = "memory";
 		reg = <0 0x80000000 0 0x80000000>;
 	};
+
+	seconddriver {
+		compatible = "our,second-driver";
+		reg = <0 0x50100000 0 0x500>;
+		status = "okay";
+	};
+
 };
 
 &bls {
