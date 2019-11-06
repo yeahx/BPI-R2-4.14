@@ -118,7 +118,7 @@ function getuenvpath {
 			uenv="";
 		fi
 	fi
-	echo "uenv: $uenv";
+	echo "$uenv";
 }
 
 function get_version()
@@ -313,10 +313,11 @@ function install
 				echo "uImage:${kernelfile} / ${kernelfile}${ndtsuffix}"
 				echo "DTB: ${dtbfile}"
 				uenv=$(getuenvpath)
+				echo "UENV:$uenv"
 				echo "by default this kernel-/dtb-file will be loaded (kernel-var in uEnv.txt):"
 				#grep '^kernel=' /media/${USER}/BPI-BOOT/bananapi/bpi-r2/linux/uEnv.txt|tail -1
-				grep '^kernel=' $uenv|tail -1
-				grep '^fdt=' $uenv|tail -1
+				grep '^kernel=' $uenv | tail -1
+				grep '^fdt=' $uenv | tail -1
 				sync
 
 				kernelname=$(ls -1t $INSTALL_MOD_PATH"/lib/modules" | head -n 1)
