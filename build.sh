@@ -148,7 +148,18 @@ function get_version()
 {
 	echo "generate branch vars..."
 	#kernbranch=$(git rev-parse --abbrev-ref HEAD)
-	kernbranch=$(git branch --contains $(git log -n 1 --pretty='%h') | grep -v '(HEAD' | head -1 | sed 's/^..//')
+
+	echo "getting git branch: "
+	#find branches with actual commit and filter out detached head
+	branches=$(git branch --contains $(git log -n 1 --pretty='%h') | grep -v '(HEAD')
+	echo "$branches"
+
+	kernbranch=$(echo "$branches" | grep '^*') #look for marked branch (local)
+	if [[ "$kernbranch" == "" ]];then #no marked branch (travis)
+		kernbranch=$(echo "$branches" | head -1) #use first one
+	fi
+	#kernbranch=$(git branch --contains $(git log -n 1 --pretty='%h') | grep '^*' | grep -v '(HEAD' | head -1 | sed 's/^..//')
+	kernbranch=$(echo "$kernbranch" | sed 's/^..//')
 	kernbranch=${kernbranch//frank-w_/}
 
 	gitbranch=$(echo $kernbranch|sed 's/^[45]\.[0-9]\+//'|sed 's/-rc$//')
@@ -353,7 +364,7 @@ function install
 				kernelname=$(ls -1t $INSTALL_MOD_PATH"/lib/modules" | head -n 1)
 				EXTRA_MODULE_PATH=$INSTALL_MOD_PATH"/lib/modules/"$kernelname"/kernel/extras"
 				#echo $kernelname" - "${EXTRA_MODULE_PATH}
-				CRYPTODEV="cryptodev/cryptodev-linux/cryptodev.ko"
+				CRYPTODEV="utils/cryptodev/cryptodev-linux/cryptodev.ko"
 				if [ -e "${CRYPTODEV}" ]; then
 					echo Copy CryptoDev
 					sudo mkdir -p "${EXTRA_MODULE_PATH}"
@@ -604,7 +615,7 @@ function prepare_SD {
 	make modules_install
 
 	#Add CryptoDev Module if exists or Blacklist
-	CRYPTODEV="cryptodev/cryptodev-linux/cryptodev.ko"
+	CRYPTODEV="utils/cryptodev/cryptodev-linux/cryptodev.ko"
 	mkdir -p "${INSTALL_MOD_PATH}/etc/modules-load.d"
 	mkdir -p "${INSTALL_MOD_PATH}/etc/modprobe.d"
 
@@ -855,7 +866,10 @@ if [ -n "$kernver" ]; then
 
 		"cryptodev")
 			echo "Build CryptoDev"
-			cryptodev/build.sh
+			cdbuildscript=utils/cryptodev/build.sh
+			if [[ -e $cdbuildscript ]];then
+				$cdbuildscript
+			fi
 			;;
 
 		"utils")
