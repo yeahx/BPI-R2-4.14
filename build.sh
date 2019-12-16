@@ -5,6 +5,8 @@ then
   exit 1;
 fi
 
+usedsa=1
+
 . build.conf
 
 r64newswver=1.0
@@ -185,17 +187,20 @@ function disable_option() {
 	echo "disable $1"
 	if [[ "$1" == "" ]];then echo "option missing ($1)";return;fi
 	#CFG=RTL8367S_GSW;
-	CFG=${1^^};
-	CFG=${CFG//CONFIG_/}
-	#echo "CFG:$CFG"
-	#grep -i 'mt753x\|rtl8367' .config
-	grep $CFG .config
-	if [[ $? -eq 0 ]]; then
-		sed -i 's:CONFIG_'$CFG'=y:# CONFIG_'$CFG' is not set:g' $DOTCONFIG
-		grep $CFG $DOTCONFIG
-	else
-		echo "option CONFIG_$CFG not found in .config"
-	fi
+	for CFG in ${1}
+	do
+		CFG=${CFG^^};
+		CFG=${CFG//CONFIG_/}
+		#echo "CFG:$CFG"
+		#grep -i 'mt753x\|rtl8367' .config
+		grep $CFG .config
+		if [[ $? -eq 0 ]]; then
+			sed -i 's:CONFIG_'$CFG'=y:# CONFIG_'$CFG' is not set:g' $DOTCONFIG
+			grep $CFG $DOTCONFIG
+		else
+			echo "option CONFIG_$CFG not found in .config"
+		fi
+	done
 }
 
 function update_kernel_source {
@@ -550,7 +555,11 @@ function build {
 				if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
 					dtbfile=mt7622-bananapi-bpi-r64-rtl8367.dtb
 				else
-					dtbfile=mt7622-bananapi-bpi-r64-mt7531.dtb
+					if [[ $usedsa -ne 0 ]];then
+						dtbfile=mt7622-bananapi-bpi-r64.dtb
+					else
+						dtbfile=mt7622-bananapi-bpi-r64-mt7531.dtb
+					fi
 				fi
 				echo "using $dtbfile..."
 				cp arch/arm64/boot/dts/mediatek/$dtbfile $board.dtb
@@ -773,9 +782,14 @@ if [ -n "$kernver" ]; then
 				echo "Import r64 config"
 				f=mt7622_bpi-r64_defconfig
 				if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
-					disable=mt753x_gsw
+					disable="mt753x_gsw NET_DSA_MT7530"
 				else
 					disable=rtl8367s_gsw
+					if [[ $usedsa -eq 0 ]];then
+						disable="$disable NET_DSA_MT7530"
+					else
+						disable="$disable mt753x_gsw"
+					fi
 				fi
 			else
 				p=arm
