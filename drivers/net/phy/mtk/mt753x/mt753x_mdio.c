@@ -269,7 +269,7 @@ static void mt753x_load_port_cfg(struct gsw_mt753x *gsw)
 
 		port_cfg->np = port_np;
 
-		port_cfg->phy_mode = of_get_phy_mode(port_np);
+		of_get_phy_mode(port_np, &port_cfg->phy_mode);
 		if (port_cfg->phy_mode < 0) {
 			dev_info(gsw->dev, "incorrect phy-mode %d\n", port);
 			continue;
