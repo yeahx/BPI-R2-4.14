@@ -542,17 +542,18 @@ function build {
 				if [[ "$builddir" != "" ]];
 				then
 					cp $builddir/arch/arm64/boot/Image arch/arm64/boot/Image
-					cp $builddir/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb
-					cp $builddir/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb
+					cp $builddir/arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64*.dtb arch/arm64/boot/dts/mediatek/
 				fi
 				#how to create zImage?? make zImage does not work here
 				if [[ -z "${uimagearch}" ]];then uimagearch=arm;fi
 				mkimage -A ${uimagearch} -O linux -T kernel -C none -a 40080000 -e 40080000 -n "Linux Kernel $kernver$gitbranch" -d arch/arm64/boot/Image ./uImage_nodt
 				if (( $(echo "$boardversion < $r64newswver" |bc -l) ));then
-					cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb $board.dtb
+					dtbfile=mt7622-bananapi-bpi-r64-rtl8367.dtb
 				else
-					cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64-mt7531.dtb $board.dtb
+					dtbfile=mt7622-bananapi-bpi-r64-mt7531.dtb
 				fi
+				echo "using $dtbfile..."
+				cp arch/arm64/boot/dts/mediatek/$dtbfile $board.dtb
 			else
 				if [[ "$builddir" != "" ]];
 				then
