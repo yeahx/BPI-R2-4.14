@@ -504,6 +504,8 @@ config RTL8367S_GSW
         ---help---
          This driver supports RTL8367s Switch
 
+source "drivers/net/phy/mtk/mt753x/Kconfig"
+
 endif # PHYLIB
 
 config MICREL_KS8995MA
