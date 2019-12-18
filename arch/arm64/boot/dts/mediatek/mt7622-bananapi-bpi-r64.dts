@@ -23,6 +23,9 @@
 #warning "mt753x DSA"
 #endif
 
+#ifdef __SWITCH__
+	#warning "DTC-Option"
+#endif
 / {
 	model = "Bananapi BPI-R64";
 	compatible = "bananapi,bpi-r64", "mediatek,mt7622";
