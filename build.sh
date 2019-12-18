@@ -73,6 +73,13 @@ then
 	export KBUILD_OUTPUT=$builddir
 fi
 
+#to allow including autoconf.h (.config as headerfile)
+#only includes linked in scripts/dtc/include-prefixes/ are allowed
+#by scripts/Makefile.lib
+if [[ ! -e scripts/dtc/include-prefixes/generated ]];then
+	ln -fs ../../../include/generated scripts/dtc/include-prefixes/
+fi
+
 function edit()
 {
 	file=$1
