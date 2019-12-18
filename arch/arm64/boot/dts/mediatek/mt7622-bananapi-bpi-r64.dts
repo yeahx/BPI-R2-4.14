@@ -12,6 +12,17 @@
 #include "mt7622.dtsi"
 #include "mt6380.dtsi"
 
+#include "../../../../../include/generated/autoconf.h"
+/* #include <generated/autoconf.h> */
+#ifdef CONFIG_MT753X_GSW
+#warning "mt753x"
+#else
+#warning "dts-test"
+#endif
+#ifdef CONFIG_NET_DSA_MT7530
+#warning "mt753x DSA"
+#endif
+
 / {
 	model = "Bananapi BPI-R64";
 	compatible = "bananapi,bpi-r64", "mediatek,mt7622";
