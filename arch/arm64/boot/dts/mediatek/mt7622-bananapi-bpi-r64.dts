@@ -12,8 +12,8 @@
 #include "mt7622.dtsi"
 #include "mt6380.dtsi"
 
-#include "../../../../../include/generated/autoconf.h"
-/* #include <generated/autoconf.h> */
+//#include "../../../../../include/generated/autoconf.h"
+#include <generated/autoconf.h>
 #ifdef CONFIG_MT753X_GSW
 #warning "mt753x"
 #else
