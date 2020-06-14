@@ -8,6 +8,7 @@
 /dts-v1/;
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pwm/pwm.h>
 
 #include "mt7622.dtsi"
 #include "mt6380.dtsi"
@@ -97,6 +98,14 @@
 		regulator-max-microvolt = <5000000>;
 		regulator-boot-on;
 		regulator-always-on;
+	};
+
+	fan0: pwm-fan {
+		compatible = "pwm-fan";
+		pwms = <&pwm 2 10000 PWM_POLARITY_INVERTED>;
+		pwm-names = "fan";
+		#cooling-cells = <2>;
+		cooling-levels = <0 130 170 230>;
 	};
 };
 
