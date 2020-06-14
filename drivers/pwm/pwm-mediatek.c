@@ -218,14 +218,13 @@ static int pwm_mediatek_set_polarity(struct pwm_chip *chip,
 				     struct pwm_device *pwm,
 				     enum pwm_polarity polarity)
 {
+	bool inv=(polarity == PWM_POLARITY_INVERSED);
+	//disable base mode for pwm_no
+	pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm + 8),inv);
 	//enable aux mode for pwm_no
-	pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm + 16),false);
-
+	pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm + 16),!inv);
 	//set polarity
-	if (polarity == PWM_POLARITY_INVERSED)
-		pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm),false);
-	else
-		pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm),true);
+	pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm),!inv);
 
         return 0;
 }
