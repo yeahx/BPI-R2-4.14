@@ -440,6 +440,7 @@
 			 <&pericfg CLK_PERI_PWM7_PD>;
 		clock-names = "top", "main", "pwm1", "pwm2", "pwm3", "pwm4",
 			      "pwm5", "pwm6", "pwm7";
+		#pwm-cells=<3>;
 		status = "disabled";
 	};
 
