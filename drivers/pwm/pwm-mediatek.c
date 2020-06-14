@@ -197,10 +197,30 @@ static void pwm_mediatek_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	pwm_mediatek_clk_disable(chip, pwm);
 }
 
+static int pwm_mediatek_set_polarity(struct pwm_chip *chip,
+				     struct pwm_device *pwm,
+				     enum pwm_polarity polarity)
+{
+        struct pwm_mediatek_chip *pc = to_pwm_mediatek_chip(chip);
+        u32 val;
+
+        val = readl(pc->regs + 0x1d0);//3DLCM register
+
+        if (polarity == PWM_POLARITY_INVERSED)
+                val |= (BIT(pwm->hwpwm + 16) | BIT(pwm->hwpwm));
+        else
+                val &= ~(BIT(pwm->hwpwm + 16) | BIT(pwm->hwpwm));
+
+        writel(val, pc->regs + 0x1d0);
+
+        return 0;
+}
+
 static const struct pwm_ops pwm_mediatek_ops = {
 	.config = pwm_mediatek_config,
 	.enable = pwm_mediatek_enable,
 	.disable = pwm_mediatek_disable,
+	.set_polarity = pwm_mediatek_set_polarity,
 	.owner = THIS_MODULE,
 };
 
