@@ -32,6 +32,7 @@
 #define PWM45THRES_FIXUP	0x34
 
 #define PWM_CLK_DIV_MAX		7
+#define PWM_3DLCM		0x1D0
 
 struct pwm_mediatek_of_data {
 	unsigned int num_pwms;
@@ -197,21 +198,34 @@ static void pwm_mediatek_disable(struct pwm_chip *chip, struct pwm_device *pwm)
 	pwm_mediatek_clk_disable(chip, pwm);
 }
 
+static int pwm_mediatek_set_3dclm(struct pwm_chip *chip, u32 value, bool clear)
+{
+	struct pwm_mediatek_chip *pc = to_pwm_mediatek_chip(chip);
+	u32 val;
+
+	val = readl(pc->regs + PWM_3DLCM);
+	if (clear)
+		val &= ~value;
+	else
+		val |= value;
+
+	writel(val, pc->regs + PWM_3DLCM);
+
+	return 0;
+}
+
 static int pwm_mediatek_set_polarity(struct pwm_chip *chip,
 				     struct pwm_device *pwm,
 				     enum pwm_polarity polarity)
 {
-        struct pwm_mediatek_chip *pc = to_pwm_mediatek_chip(chip);
-        u32 val;
+	//enable aux mode for pwm_no
+	pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm + 16),false);
 
-        val = readl(pc->regs + 0x1d0);//3DLCM register
-
-        if (polarity == PWM_POLARITY_INVERSED)
-                val |= (BIT(pwm->hwpwm + 16) | BIT(pwm->hwpwm));
-        else
-                val &= ~(BIT(pwm->hwpwm + 16) | BIT(pwm->hwpwm));
-
-        writel(val, pc->regs + 0x1d0);
+	//set polarity
+	if (polarity == PWM_POLARITY_INVERSED)
+		pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm),false);
+	else
+		pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm),true);
 
         return 0;
 }
