@@ -230,11 +230,29 @@ static int pwm_mediatek_set_polarity(struct pwm_chip *chip,
         return 0;
 }
 
+static int pwm_mediatek_apply(struct pwm_chip *chip, struct pwm_device *pwm,
+			      const struct pwm_state *state)
+{
+	//struct pwm_mediatek_chip *pc = to_pwm_mediatek_chip(chip);
+	//int err = 0;
+
+	if (!state)
+		return -EINVAL;
+
+	printk(KERN_ALERT "DEBUG: Passed %s %d PWM#%d, inv:%d==%d?\n",
+		__FUNCTION__,__LINE__,pwm->hwpwm,state->polarity,(int)PWM_POLARITY_INVERSED);
+	//if (!state->enabled) {
+	if (state->polarity == PWM_POLARITY_INVERSED) {
+	}
+	return 0;
+}
+
 static const struct pwm_ops pwm_mediatek_ops = {
 	.config = pwm_mediatek_config,
 	.enable = pwm_mediatek_enable,
 	.disable = pwm_mediatek_disable,
 	.set_polarity = pwm_mediatek_set_polarity,
+	.apply = pwm_mediatek_apply,
 	.owner = THIS_MODULE,
 };
 
@@ -245,6 +263,7 @@ static int pwm_mediatek_probe(struct platform_device *pdev)
 	unsigned int i;
 	int ret;
 
+	printk(KERN_ALERT "DEBUG: Passed %s %d",__FUNCTION__,__LINE__);
 	pc = devm_kzalloc(&pdev->dev, sizeof(*pc), GFP_KERNEL);
 	if (!pc)
 		return -ENOMEM;
