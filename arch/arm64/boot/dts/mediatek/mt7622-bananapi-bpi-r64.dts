@@ -100,9 +100,12 @@
 		regulator-always-on;
 	};
 
-	fan: fan-pwm {
+	fan0: pwm-fan {
+		compatible = "pwm-fan";
 		pwms = <&pwm 2 10000 PWM_POLARITY_INVERTED>;
 		pwm-names = "fan";
+		#cooling-cells = <2>;
+		cooling-levels = <0 130 170 230>;
 	};
 };
 
