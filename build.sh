@@ -256,14 +256,14 @@ function upload {
 	#if [[ "$board" == "bpi-r64" ]];then
 	#	switch="_"$(get_r64_switch)
 	#fi
-	imagename="uImage_${kernver}${gitbranch}${switch}"
+	imagename="uImage_${kernver}${board//bpi/}${gitbranch}${switch}"
 	read -e -i $imagename -p "Kernel-filename: " input
 	imagename="${input:-$imagename}"
 
 	echo "Name: $imagename"
 
 	if [[ "$board" == "bpi-r64" ]];then
-		dtbname="${kernver}${gitbranch}${switch}.dtb"
+		dtbname="${kernver}${board//bpi/}${gitbranch}${switch}.dtb"
 		read -e -i $dtbname -p "dtb-filename: " input
 		dtbname="${input:-$dtbname}"
 
