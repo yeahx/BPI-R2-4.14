@@ -550,6 +550,7 @@
 &pwm {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pwm_pins>;
+	pwms = <&pwm 2 10000 PWM_POLARITY_INVERTED>;
 	status = "okay";
 };
 
