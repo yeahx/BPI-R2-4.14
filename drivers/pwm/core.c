@@ -136,24 +136,26 @@ of_pwm_xlate_with_flags(struct pwm_chip *pc, const struct of_phandle_args *args)
 {
 	struct pwm_device *pwm;
 
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* check, whether the driver supports a third cell for flags */
 	if (pc->of_pwm_n_cells < 3)
 		return ERR_PTR(-EINVAL);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* flags in the third cell are optional */
 	if (args->args_count < 2)
 		return ERR_PTR(-EINVAL);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (args->args[0] >= pc->npwm)
 		return ERR_PTR(-EINVAL);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pwm = pwm_request_from_chip(pc, args->args[0], NULL);
 	if (IS_ERR(pwm))
 		return pwm;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pwm->args.period = args->args[1];
 	pwm->args.polarity = PWM_POLARITY_NORMAL;
 
+	printk(KERN_ALERT "DEBUG: Passed %s %d pwm_no: %d,argc:%d \n",__FUNCTION__,__LINE__,pwm->hwpwm,args->args_count);
 	if (args->args_count > 2 && args->args[2] & PWM_POLARITY_INVERTED)
 		pwm->args.polarity = PWM_POLARITY_INVERSED;
 
@@ -811,20 +813,20 @@ struct pwm_device *of_pwm_get(struct device *dev, struct device_node *np,
 	struct pwm_chip *pc;
 	int index = 0;
 	int err;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (con_id) {
 		index = of_property_match_string(np, "pwm-names", con_id);
 		if (index < 0)
 			return ERR_PTR(index);
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	err = of_parse_phandle_with_args(np, "pwms", "#pwm-cells", index,
 					 &args);
 	if (err) {
 		pr_err("%s(): can't parse \"pwms\" property\n", __func__);
 		return ERR_PTR(err);
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pc = of_node_to_pwmchip(args.np);
 	if (IS_ERR(pc)) {
 		if (PTR_ERR(pc) != -EPROBE_DEFER)
@@ -833,11 +835,11 @@ struct pwm_device *of_pwm_get(struct device *dev, struct device_node *np,
 		pwm = ERR_CAST(pc);
 		goto put;
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pwm = pc->of_xlate(pc, &args);
 	if (IS_ERR(pwm))
 		goto put;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	dl = pwm_device_link_add(dev, pwm);
 	if (IS_ERR(dl)) {
 		/* of_xlate ended up calling pwm_request_from_chip() */
@@ -1005,11 +1007,11 @@ struct pwm_device *pwm_get(struct device *dev, const char *con_id)
 	struct pwm_lookup *p, *chosen = NULL;
 	unsigned int match;
 	int err;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* look up via DT first */
 	if (IS_ENABLED(CONFIG_OF) && dev && dev->of_node)
 		return of_pwm_get(dev, dev->of_node, con_id);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* then lookup via ACPI */
 	if (dev && is_acpi_node(dev->fwnode)) {
 		pwm = acpi_pwm_get(dev->fwnode);
@@ -1152,11 +1154,11 @@ static void devm_pwm_release(struct device *dev, void *res)
 struct pwm_device *devm_pwm_get(struct device *dev, const char *con_id)
 {
 	struct pwm_device **ptr, *pwm;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
 	if (!ptr)
 		return ERR_PTR(-ENOMEM);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pwm = pwm_get(dev, con_id);
 	if (!IS_ERR(pwm)) {
 		*ptr = pwm;
@@ -1164,7 +1166,7 @@ struct pwm_device *devm_pwm_get(struct device *dev, const char *con_id)
 	} else {
 		devres_free(ptr);
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return pwm;
 }
 EXPORT_SYMBOL_GPL(devm_pwm_get);
@@ -1185,11 +1187,11 @@ struct pwm_device *devm_of_pwm_get(struct device *dev, struct device_node *np,
 				   const char *con_id)
 {
 	struct pwm_device **ptr, *pwm;
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
 	if (!ptr)
 		return ERR_PTR(-ENOMEM);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pwm = of_pwm_get(dev, np, con_id);
 	if (!IS_ERR(pwm)) {
 		*ptr = pwm;
@@ -1197,7 +1199,7 @@ struct pwm_device *devm_of_pwm_get(struct device *dev, struct device_node *np,
 	} else {
 		devres_free(ptr);
 	}
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return pwm;
 }
 EXPORT_SYMBOL_GPL(devm_of_pwm_get);
@@ -1219,16 +1221,16 @@ struct pwm_device *devm_fwnode_pwm_get(struct device *dev,
 				       const char *con_id)
 {
 	struct pwm_device **ptr, *pwm = ERR_PTR(-ENODEV);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ptr = devres_alloc(devm_pwm_release, sizeof(*ptr), GFP_KERNEL);
 	if (!ptr)
 		return ERR_PTR(-ENOMEM);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (is_of_node(fwnode))
 		pwm = of_pwm_get(dev, to_of_node(fwnode), con_id);
 	else if (is_acpi_node(fwnode))
 		pwm = acpi_pwm_get(fwnode);
-
+printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (!IS_ERR(pwm)) {
 		*ptr = pwm;
 		devres_add(dev, ptr);

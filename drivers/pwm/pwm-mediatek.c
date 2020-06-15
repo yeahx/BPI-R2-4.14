@@ -219,6 +219,7 @@ static int pwm_mediatek_set_polarity(struct pwm_chip *chip,
 				     enum pwm_polarity polarity)
 {
 	bool inv=(polarity == PWM_POLARITY_INVERSED);
+	printk(KERN_ALERT "DEBUG: Passed %s %d PWM#%d, inv:%d\n",__FUNCTION__,__LINE__,pwm->hwpwm,(int)inv);
 	//disable base mode for pwm_no
 	pwm_mediatek_set_3dclm(chip,BIT(pwm->hwpwm + 8),inv);
 	//enable aux mode for pwm_no
