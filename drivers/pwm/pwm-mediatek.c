@@ -252,7 +252,7 @@ static const struct pwm_ops pwm_mediatek_ops = {
 	.enable = pwm_mediatek_enable,
 	.disable = pwm_mediatek_disable,
 	.set_polarity = pwm_mediatek_set_polarity,
-	.apply = pwm_mediatek_apply,
+//	.apply = pwm_mediatek_apply,
 	.owner = THIS_MODULE,
 };
 
