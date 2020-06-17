@@ -313,6 +313,7 @@ static int pwm_mediatek_probe(struct platform_device *pdev)
 	pc->chip.ops = &pwm_mediatek_ops;
 	pc->chip.base = -1;
 	pc->chip.npwm = pc->soc->num_pwms;
+	pc->chip.of_pwm_n_cells = 3;
 	pc->chip.of_xlate = of_pwm_xlate_with_flags;
 
 	ret = pwmchip_add(&pc->chip);
