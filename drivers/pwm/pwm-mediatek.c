@@ -202,13 +202,14 @@ static int pwm_mediatek_set_3dlcm(struct pwm_chip *chip, u32 value, bool clear)
 {
 	struct pwm_mediatek_chip *pc = to_pwm_mediatek_chip(chip);
 	u32 val;
-
 	val = readl(pc->regs + PWM_3DLCM);
+	printk(KERN_ALERT "DEBUG: Passed %s %d read val: 0x%x value:0x%x, clear:%d\n",__FUNCTION__,__LINE__,val,value,(int)clear);
 	if (clear)
 		val &= ~value;
 	else
 		val |= value;
 
+	printk(KERN_ALERT "DEBUG: Passed %s %d write val: 0x%x value:0x%x, clear:%d\n",__FUNCTION__,__LINE__,val,value,(int)clear);
 	writel(val, pc->regs + PWM_3DLCM);
 
 	return 0;
