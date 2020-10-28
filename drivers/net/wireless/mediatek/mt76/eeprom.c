@@ -10,6 +10,49 @@
 #include "mt76.h"
 
 static int
+mt76_get_of_file(struct mt76_dev *dev, int len)
+{
+#if defined(CONFIG_OF)
+	struct device_node *np = dev->dev->of_node;
+	const char *fname;
+	struct file *fp;
+	loff_t pos=0;
+	char path[64]="/lib/firmware/";
+	ssize_t ret;
+
+	if (!np)
+		return -ENOENT;
+
+	ret = of_property_read_string(np, "mediatek,rf-conf", &fname);
+	if (!np)
+		return -EINVAL;
+	if((strlen(path)+strlen(fname)) > sizeof(path)){
+		dev_info(dev->dev,"Erro 'mediatek,rf-conf' too long\n");
+		return -EINVAL;
+	}
+	strcat(path,fname);
+	dev_info(dev->dev,"Find 'mediatek,rf-conf' : %s\n",path);
+	fp = filp_open(path, O_RDWR, 0);
+	if (IS_ERR(fp)) {
+		dev_info(dev->dev,"Open File Faile : %s\n",path);
+		return -ENOENT;
+	}
+	ret = kernel_read(fp, dev->eeprom.data, len, &pos);
+	if(ret < len){
+		dev_info(dev->dev,"Read File ERR, count %ld\n",ret);
+		ret = -ENOENT;
+	}
+	filp_close(fp, 0);
+	of_node_put(np);
+	dev_info(dev->dev,"Read File OK, count %ld\n",ret);
+
+	return 0;
+#else
+	return -ENOENT;
+#endif
+}
+
+static int
 mt76_get_of_eeprom(struct mt76_dev *dev, int len)
 {
 #if defined(CONFIG_OF) && defined(CONFIG_MTD)
@@ -116,7 +159,6 @@ mt76_eeprom_init(struct mt76_dev *dev, int len)
 	dev->eeprom.data = devm_kzalloc(dev->dev, len, GFP_KERNEL);
 	if (!dev->eeprom.data)
 		return -ENOMEM;
-
-	return !mt76_get_of_eeprom(dev, len);
+	return (!mt76_get_of_file(dev, len)) || (!mt76_get_of_eeprom(dev, len));//mtd priority mt76
 }
 EXPORT_SYMBOL_GPL(mt76_eeprom_init);
