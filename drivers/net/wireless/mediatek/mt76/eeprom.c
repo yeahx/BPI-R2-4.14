@@ -12,44 +12,29 @@
 static int
 mt76_get_of_file(struct mt76_dev *dev, int len)
 {
-#if defined(CONFIG_OF)
-	struct device_node *np = dev->dev->of_node;
-	const char *fname;
+	char path[64]="";
 	struct file *fp;
 	loff_t pos=0;
-	char path[64]="/lib/firmware/";
-	ssize_t ret;
+	int ret;
 
-	if (!np)
-		return -ENOENT;
-
-	ret = of_property_read_string(np, "mediatek,rf-conf", &fname);
-	if (!np)
+	ret = snprintf(path,sizeof(path),"/lib/firmware/mediatek/%s_rf.bin",dev->dev->driver->name);
+	if(ret<0)
 		return -EINVAL;
-	if((strlen(path)+strlen(fname)) > sizeof(path)){
-		dev_info(dev->dev,"Erro 'mediatek,rf-conf' too long\n");
-		return -EINVAL;
-	}
-	strcat(path,fname);
-	dev_info(dev->dev,"Find 'mediatek,rf-conf' : %s\n",path);
-	fp = filp_open(path, O_RDWR, 0);
+	dev_info(dev->dev,"Load firmware : %s\n",path);
+	fp = filp_open(path, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
-		dev_info(dev->dev,"Open File Faile : %s\n",path);
+		dev_info(dev->dev,"Open file failed : %s\n",path);
 		return -ENOENT;
 	}
 	ret = kernel_read(fp, dev->eeprom.data, len, &pos);
 	if(ret < len){
-		dev_info(dev->dev,"Read File ERR, count %ld\n",ret);
-		ret = -ENOENT;
+		dev_info(dev->dev,"Load firmware ERR, count %dbyte\n",ret);
+		return -ENOENT;
 	}
 	filp_close(fp, 0);
-	of_node_put(np);
-	dev_info(dev->dev,"Read File OK, count %ld\n",ret);
+	dev_info(dev->dev,"Load firmware OK, count %dbyte\n",ret);
 
 	return 0;
-#else
-	return -ENOENT;
-#endif
 }
 
 static int
