@@ -389,7 +389,13 @@ function install
 					echo "no change needed!"
 					openuenv=n
 				else
-					echo "change needed to boot new kernel (kernel=${imagename})!"
+					echo "change needed to boot new kernel:"
+					if [[ "$ndtinput"=="y" ]];then
+						echo "kernel=${imagename}${ndtsuffix}"
+						echo "fdt=${dtbname}"
+					else
+						echo "kernel=${imagename}"
+					fi
 					openuenv=y
 				fi
 
