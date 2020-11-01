@@ -151,6 +151,7 @@ struct mtk_pcie_port;
 struct mtk_pcie_soc {
 	bool need_fix_class_id;
 	bool need_fix_device_id;
+	bool no_msi;
 	unsigned int device_id;
 	struct pci_ops *ops;
 	int (*startup)(struct mtk_pcie_port *port);
@@ -434,6 +435,9 @@ static int mtk_pcie_irq_domain_alloc(struct irq_domain *domain, unsigned int vir
 {
 	struct mtk_pcie_port *port = domain->host_data;
 	unsigned long bit;
+
+	if (port->pcie->soc->no_msi)
+		return -ENOSPC;
 
 	WARN_ON(nr_irqs != 1);
 	mutex_lock(&port->lock);
@@ -966,11 +970,13 @@ static int mtk_pcie_parse_port(struct mtk_pcie *pcie,
 	port->slot = slot;
 	port->pcie = pcie;
 
-	if (pcie->soc->setup_irq) {
+	if (pcie->soc->setup_irq)
 		err = pcie->soc->setup_irq(port, node);
-		if (err)
-			return err;
-	}
+	else
+		err = mtk_pcie_allocate_msi_domains(port);
+
+	if (err)
+		return err;
 
 	INIT_LIST_HEAD(&port->list);
 	list_add_tail(&port->list, &pcie->ports);
@@ -1173,6 +1179,7 @@ static const struct dev_pm_ops mtk_pcie_pm_ops = {
 };
 
 static const struct mtk_pcie_soc mtk_pcie_soc_v1 = {
+	.no_msi = true,
 	.ops = &mtk_pcie_ops,
 	.startup = mtk_pcie_startup_port,
 };
