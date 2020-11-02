@@ -28,11 +28,11 @@ mt76_get_of_file(struct mt76_dev *dev, int len)
 	}
 	ret = kernel_read(fp, dev->eeprom.data, len, &pos);
 	if(ret < len){
-		dev_info(dev->dev,"Load firmware ERR, count %dbyte\n",ret);
+		dev_info(dev->dev,"Load firmware ERR, count %d byte (len:%d)\n",ret,len);
 		return -ENOENT;
 	}
 	filp_close(fp, 0);
-	dev_info(dev->dev,"Load firmware OK, count %dbyte\n",ret);
+	dev_info(dev->dev,"Load firmware OK, count %d byte\n",ret);
 
 	return 0;
 }
@@ -140,6 +140,7 @@ EXPORT_SYMBOL_GPL(mt76_eeprom_override);
 int
 mt76_eeprom_init(struct mt76_dev *dev, int len)
 {
+	printk(KERN_ALERT "DEBUG: Passed %s %d len:%d \n",__FUNCTION__,__LINE__,len);
 	dev->eeprom.size = len;
 	dev->eeprom.data = devm_kzalloc(dev->dev, len, GFP_KERNEL);
 	if (!dev->eeprom.data)
