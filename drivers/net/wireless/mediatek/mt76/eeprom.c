@@ -10,12 +10,33 @@
 #include "mt76.h"
 
 static int
+mt76_get_file_size(char *filename)
+{
+	int input_size;
+	struct kstat *stat;
+	mm_segment_t fs;
+
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+
+	stat =(struct kstat *) kmalloc(sizeof(struct kstat), GFP_KERNEL);
+	if (!stat)
+		return -ENOMEM;
+	vfs_stat(filename, stat);
+	input_size = stat->size;
+	set_fs(fs);
+	kfree(stat);
+	return input_size;
+}
+
+static int
 mt76_get_of_file(struct mt76_dev *dev, int len)
 {
 	char path[64]="";
 	struct file *fp;
 	loff_t pos=0;
 	int ret;
+	int fsize;
 
 	ret = snprintf(path,sizeof(path),"/lib/firmware/mediatek/%s_rf.bin",dev->dev->driver->name);
 	if(ret<0)
@@ -26,6 +47,8 @@ mt76_get_of_file(struct mt76_dev *dev, int len)
 		dev_info(dev->dev,"Open file failed : %s\n",path);
 		return -ENOENT;
 	}
+	fsize=mt76_get_file_size(path);
+	printk(KERN_ALERT "DEBUG: Passed %s %d fsize:%d \n",__FUNCTION__,__LINE__,fsize);
 	ret = kernel_read(fp, dev->eeprom.data, len, &pos);
 	if(ret < len){
 		dev_info(dev->dev,"Load firmware ERR, count %d byte (len:%d)\n",ret,len);
