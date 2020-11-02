@@ -871,8 +871,6 @@ static void pci_set_bus_msi_domain(struct pci_bus *bus)
 		d = pci_host_bridge_msi_domain(b);
 
 	dev_set_msi_domain(&bus->dev, d);
-	if (!d)
-		bus->bus_flags |= PCI_BUS_FLAGS_NO_MSI;
 }
 
 static int pci_register_host_bridge(struct pci_host_bridge *bridge)
