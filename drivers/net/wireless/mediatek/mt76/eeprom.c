@@ -50,7 +50,7 @@ mt76_get_of_file(struct mt76_dev *dev, int len)
 	fsize=mt76_get_file_size(path);
 	printk(KERN_ALERT "DEBUG: Passed %s %d fsize:%d \n",__FUNCTION__,__LINE__,fsize);
 	ret = kernel_read(fp, dev->eeprom.data, len, &pos);
-	if(ret < len){
+	if(ret < fsize){
 		dev_info(dev->dev,"Load firmware ERR, count %d byte (len:%d)\n",ret,len);
 		return -ENOENT;
 	}
