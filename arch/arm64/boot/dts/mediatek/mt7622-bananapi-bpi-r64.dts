@@ -602,6 +602,5 @@
 };
 
 &wmac {
-	mediatek,rf-conf = "mt7622_rf_conf.bin";
 	status = "okay";
 };
