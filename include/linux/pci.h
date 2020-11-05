@@ -2333,12 +2333,6 @@ pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
 static inline bool pci_pr3_present(struct pci_dev *pdev) { return false; }
 #endif
 
-static inline bool pci_bus_is_msi_capable(struct pci_bus *bus)
-{
-    return (IS_ENABLED(CONFIG_PCI_MSI_ARCH_FALLBACKS) ||
-        dev_get_msi_domain(&bus->dev));
-}
-
 #ifdef CONFIG_EEH
 static inline struct eeh_dev *pci_dev_to_eeh_dev(struct pci_dev *pdev)
 {

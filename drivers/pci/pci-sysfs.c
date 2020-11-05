@@ -387,20 +387,10 @@ static ssize_t msi_bus_store(struct device *dev, struct device_attribute *attr,
 		return count;
 	}
 
-	if (val) {
-		/*
- 		 * If there is no possibility for this bus to deal with
-		 * MSIs, then allowing them to be requested would lead to
-		 * the kernel complaining loudly. In this situation, don't
-		 * let userspace mess things up.
-		 */
-		if (!pci_bus_is_msi_capable(subordinate))
-			return -EINVAL;
-
+	if (val)
 		subordinate->bus_flags &= ~PCI_BUS_FLAGS_NO_MSI;
-	} else {
+	else
 		subordinate->bus_flags |= PCI_BUS_FLAGS_NO_MSI;
-	}
 
 	dev_info(&subordinate->dev, "MSI/MSI-X %s for future drivers of devices on this bus\n",
 		 val ? "allowed" : "disallowed");
