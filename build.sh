@@ -43,7 +43,10 @@ fi;
 
 if [[ "$builddir" != "" ]];
 then
-	KBUILD_OUTPUT= make mrproper
+	if [[ "$1" == "importconfig" ]];
+	then
+		KBUILD_OUTPUT= make mrproper
+	fi
 	if [[ ! "$builddir" =~ ^/ ]] || [[ "$builddir" == "/" ]];then
 		#make it absolute
 		builddir=$(realpath $(pwd)"/"$builddir)
@@ -262,7 +265,7 @@ function upload {
 	#if [[ "$board" == "bpi-r64" ]];then
 	#	switch="_"$(get_r64_switch)
 	#fi
-	imagename="uImage_${kernver}${board//bpi/}${gitbranch}${switch}"
+	imagename="uImage_${kernver}${gitbranch}${board//bpi/}${switch}"
 	read -e -i $imagename -p "Kernel-filename: " input
 	imagename="${input:-$imagename}"
 
@@ -362,7 +365,7 @@ function install
 				echo "copy modules (root needed because of ext-fs permission)"
 				export INSTALL_MOD_PATH=/media/$USER/BPI-ROOT/;
 				echo "INSTALL_MOD_PATH: $INSTALL_MOD_PATH"
-				sudo make ARCH=$ARCH INSTALL_MOD_PATH=$INSTALL_MOD_PATH modules_install
+				sudo make ARCH=$ARCH INSTALL_MOD_PATH=$INSTALL_MOD_PATH KBUILD_OUTPUT=$KBUILD_OUTPUT modules_install
 
 				echo "uImage:"
 				if [[ "$dtinput" == "y" ]];then
@@ -385,6 +388,9 @@ function install
 				if [[ "$curkernel" == "${imagename}" || "$curkernel" == "${imagename}${ndtsuffix}" ]];then
 					echo "no change needed!"
 					openuenv=n
+				else
+					echo "change needed to boot new kernel (kernel=${imagename})!"
+					openuenv=y
 				fi
 
 				kernelname=$(ls -1t $INSTALL_MOD_PATH"/lib/modules" | head -n 1)
@@ -572,7 +578,7 @@ function build {
 		exec 3> >(tee build.log)
 		export LOCALVERSION="${gitbranch}"
 		#MAKEFLAGS="V=1"
-		make ${MAKEFLAGS} ${CFLAGS} 2>&3 #&& make modules_install 2>&3
+		make ${MAKEFLAGS} ${CFLAGS} 2>&3
 		ret=$?
 		exec 3>&-
 
@@ -589,6 +595,7 @@ function build {
 				cp arch/arm64/boot/dts/mediatek/mt7622-bananapi-bpi-r64.dtb $board.dtb
 				sed "s/%version%/$kernver$gitbranch/" ${board}.its > ${board}.its.tmp
 				mkimage -f ${board}.its.tmp ${board}-$kernver$gitbranch.itb
+				rm ${board}.its.tmp
 			else
 				if [[ "$builddir" != "" ]];
 				then
@@ -875,7 +882,10 @@ if [ -n "$kernver" ]; then
 			build
 			#$0 cryptodev
 			;;
-
+		"clean")
+			echo clean
+			make clean
+			;;
 		"spidev")
 			echo "Build SPIDEV-Test"
 			(
