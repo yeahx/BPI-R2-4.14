@@ -6,7 +6,7 @@
  *  Min Guo <min.guo@mediatek.com>
  *  Yonglong Wu <yonglong.wu@mediatek.com>
  */
-#define DEBUG 1
+
 #include <linux/clk.h>
 #include <linux/dma-mapping.h>
 #include <linux/module.h>
@@ -97,7 +97,7 @@ static int mtk_musb_clks_enable(struct mtk_glue *glue)
 		dev_err(glue->dev, "failed to enable univpll clock\n");
 		goto err_univpll_clk;
 	}
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	return 0;
 
 err_univpll_clk:
@@ -110,13 +110,9 @@ err_main_clk:
 
 static void mtk_musb_clks_disable(struct mtk_glue *glue)
 {
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	clk_disable_unprepare(glue->univpll);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	clk_disable_unprepare(glue->mcu);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	clk_disable_unprepare(glue->main);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 }
 
 static int mtk_otg_switch_set(struct mtk_glue *glue, enum usb_role role)
@@ -124,10 +120,10 @@ static int mtk_otg_switch_set(struct mtk_glue *glue, enum usb_role role)
 	struct musb *musb = glue->musb;
 	u8 devctl = readb(musb->mregs + MUSB_DEVCTL);
 	enum usb_role new_role;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	if (role == glue->role)
 		return 0;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	switch (role) {
 	case USB_ROLE_HOST:
 		musb->xceiv->otg->state = OTG_STATE_A_WAIT_VRISE;
@@ -135,11 +131,10 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		new_role = USB_ROLE_HOST;
 		if (glue->role == USB_ROLE_NONE)
 			phy_power_on(glue->phy);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 		devctl |= MUSB_DEVCTL_SESSION;
 		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 		MUSB_HST_MODE(musb);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		break;
 	case USB_ROLE_DEVICE:
 		musb->xceiv->otg->state = OTG_STATE_B_IDLE;
@@ -149,9 +144,8 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 		if (glue->role == USB_ROLE_NONE)
 			phy_power_on(glue->phy);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 		MUSB_DEV_MODE(musb);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		break;
 	case USB_ROLE_NONE:
 		glue->phy_mode = PHY_MODE_USB_OTG;
@@ -160,7 +154,7 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
 		if (glue->role != USB_ROLE_NONE)
 			phy_power_off(glue->phy);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 		break;
 	default:
 		dev_err(glue->dev, "Invalid State\n");
@@ -169,7 +163,7 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 
 	glue->role = new_role;
 	phy_set_mode(glue->phy, glue->phy_mode);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	return 0;
 }
 
@@ -194,13 +188,12 @@ static int mtk_otg_switch_init(struct mtk_glue *glue)
 	role_sx_desc.fwnode = dev_fwnode(glue->dev);
 	role_sx_desc.driver_data = glue;
 	glue->role_sw = usb_role_switch_register(glue->dev, &role_sx_desc);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	return PTR_ERR_OR_ZERO(glue->role_sw);
 }
 
 static void mtk_otg_switch_exit(struct mtk_glue *glue)
 {
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return usb_role_switch_unregister(glue->role_sw);
 }
 
@@ -209,23 +202,23 @@ static irqreturn_t generic_interrupt(int irq, void *__hci)
 	unsigned long flags;
 	irqreturn_t retval = IRQ_NONE;
 	struct musb *musb = __hci;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	spin_lock_irqsave(&musb->lock, flags);
 	musb->int_usb = musb_clearb(musb->mregs, MUSB_INTRUSB);
 	musb->int_rx = musb_clearw(musb->mregs, MUSB_INTRRX);
 	musb->int_tx = musb_clearw(musb->mregs, MUSB_INTRTX);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	if ((musb->int_usb & MUSB_INTR_RESET) && !is_host_active(musb)) {
 		/* ep0 FADDR must be 0 when (re)entering peripheral mode */
 		musb_ep_select(musb->mregs, 0);
 		musb_writeb(musb->mregs, MUSB_FADDR, 0);
 	}
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	if (musb->int_usb || musb->int_tx || musb->int_rx)
 		retval = musb_interrupt(musb);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	spin_unlock_irqrestore(&musb->lock, flags);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	return retval;
 }
 
@@ -234,19 +227,17 @@ static irqreturn_t mtk_musb_interrupt(int irq, void *dev_id)
 	irqreturn_t retval = IRQ_NONE;
 	struct musb *musb = (struct musb *)dev_id;
 	u32 l1_ints;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	l1_ints = musb_readl(musb->mregs, USB_L1INTS) &
 			musb_readl(musb->mregs, USB_L1INTM);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	if (l1_ints & (TX_INT_STATUS | RX_INT_STATUS | USBCOM_INT_STATUS))
 		retval = generic_interrupt(irq, musb);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 #if defined(CONFIG_USB_INVENTRA_DMA)
 	if (l1_ints & DMA_INT_STATUS)
 		retval = dma_controller_irq(irq, musb->dma_controller);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 #endif
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return retval;
 }
 
@@ -258,11 +249,10 @@ static u32 mtk_musb_busctl_offset(u8 epnum, u16 offset)
 static u8 mtk_musb_clearb(void __iomem *addr, unsigned int offset)
 {
 	u8 data;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
+
 	/* W1C */
 	data = musb_readb(addr, offset);
 	musb_writeb(addr, offset, data);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return data;
 }
 
@@ -282,7 +272,6 @@ static int mtk_musb_set_mode(struct musb *musb, u8 mode)
 	struct mtk_glue *glue = dev_get_drvdata(dev->parent);
 	enum phy_mode new_mode;
 	enum usb_role new_role;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 
 	switch (mode) {
 	case MUSB_HOST:
@@ -302,19 +291,15 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		return -EINVAL;
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (glue->phy_mode == new_mode)
 		return 0;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (musb->port_mode != MUSB_OTG) {
 		dev_err(glue->dev, "Does not support changing modes\n");
 		return -EINVAL;
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	mtk_otg_switch_set(glue, new_role);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 }
 
@@ -324,49 +309,38 @@ static int mtk_musb_init(struct musb *musb)
 	struct mtk_glue *glue = dev_get_drvdata(dev->parent);
 	int ret;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue->musb = musb;
 	musb->phy = glue->phy;
 	musb->xceiv = glue->xceiv;
 	musb->is_host = false;
 	musb->isr = mtk_musb_interrupt;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	/* Set TX/RX toggle enable */
 	musb_writew(musb->mregs, MUSB_TXTOGEN, MTK_TOGGLE_EN);
 	musb_writew(musb->mregs, MUSB_RXTOGEN, MTK_TOGGLE_EN);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (musb->port_mode == MUSB_OTG) {
 		ret = mtk_otg_switch_init(glue);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		if (ret)
 			return ret;
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ret = phy_init(glue->phy);
 	if (ret)
 		goto err_phy_init;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ret = phy_power_on(glue->phy);
 	if (ret)
 		goto err_phy_power_on;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	phy_set_mode(glue->phy, glue->phy_mode);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 #if defined(CONFIG_USB_INVENTRA_DMA)
 	musb_writel(musb->mregs, MUSB_HSDMA_INTR,
 		    DMA_INTR_STATUS_MSK | DMA_INTR_UNMASK_SET_MSK);
 #endif
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	musb_writel(musb->mregs, USB_L1INTM, TX_INT_STATUS | RX_INT_STATUS |
 		    USBCOM_INT_STATUS | DMA_INT_STATUS);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 
 err_phy_power_on:
@@ -382,9 +356,7 @@ static u16 mtk_musb_get_toggle(struct musb_qh *qh, int is_out)
 	u8 epnum = qh->hw_ep->epnum;
 	u16 toggle;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	toggle = musb_readw(musb->mregs, is_out ? MUSB_TXTOG : MUSB_RXTOG);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return toggle & (1 << epnum);
 }
 
@@ -394,10 +366,8 @@ static u16 mtk_musb_set_toggle(struct musb_qh *qh, int is_out, struct urb *urb)
 	u8 epnum = qh->hw_ep->epnum;
 	u16 value, toggle;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	toggle = usb_gettoggle(urb->dev, qh->epnum, is_out);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (is_out) {
 		value = musb_readw(musb->mregs, MUSB_TXTOG);
 		value |= toggle << epnum;
@@ -408,7 +378,6 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		musb_writew(musb->mregs, MUSB_RXTOG, value);
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 }
 
@@ -417,20 +386,13 @@ static int mtk_musb_exit(struct musb *musb)
 	struct device *dev = musb->controller;
 	struct mtk_glue *glue = dev_get_drvdata(dev->parent);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	mtk_otg_switch_exit(glue);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	phy_power_off(glue->phy);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	phy_exit(glue->phy);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	mtk_musb_clks_disable(glue);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pm_runtime_put_sync(dev);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pm_runtime_disable(dev);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 }
 
@@ -494,41 +456,34 @@ static int mtk_musb_probe(struct platform_device *pdev)
 	struct device_node *np = dev->of_node;
 	int ret;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue = devm_kzalloc(dev, sizeof(*glue), GFP_KERNEL);
 	if (!glue)
 		return -ENOMEM;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue->dev = dev;
 	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
 	if (!pdata)
 		return -ENOMEM;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ret = of_platform_populate(np, NULL, NULL, dev);
 	if (ret) {
 		dev_err(dev, "failed to create child devices at %p\n", np);
 		return ret;
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ret = mtk_musb_clks_get(glue);
 	if (ret)
 		return ret;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pdata->config = &mtk_musb_hdrc_config;
 	pdata->platform_ops = &mtk_musb_ops;
 	pdata->mode = usb_get_dr_mode(dev);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	if (IS_ENABLED(CONFIG_USB_MUSB_HOST))
 		pdata->mode = USB_DR_MODE_HOST;
 	else if (IS_ENABLED(CONFIG_USB_MUSB_GADGET))
 		pdata->mode = USB_DR_MODE_PERIPHERAL;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	switch (pdata->mode) {
 	case USB_DR_MODE_HOST:
 		glue->phy_mode = PHY_MODE_USB_HOST;
@@ -547,7 +502,6 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		return -EINVAL;
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue->phy = devm_of_phy_get_by_index(dev, np, 0);
 	if (IS_ERR(glue->phy)) {
 		dev_err(dev, "fail to getting phy %ld\n",
@@ -555,7 +509,6 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		return PTR_ERR(glue->phy);
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue->usb_phy = usb_phy_generic_register();
 	if (IS_ERR(glue->usb_phy)) {
 		dev_err(dev, "fail to registering usb-phy %ld\n",
@@ -563,7 +516,6 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		return PTR_ERR(glue->usb_phy);
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue->xceiv = devm_usb_get_phy(dev, USB_PHY_TYPE_USB2);
 	if (IS_ERR(glue->xceiv)) {
 		dev_err(dev, "fail to getting usb-phy %d\n", ret);
@@ -571,17 +523,14 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		goto err_unregister_usb_phy;
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	platform_set_drvdata(pdev, glue);
 	pm_runtime_enable(dev);
 	pm_runtime_get_sync(dev);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	ret = mtk_musb_clks_enable(glue);
 	if (ret)
 		goto err_enable_clk;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pinfo = mtk_dev_info;
 	pinfo.parent = dev;
 	pinfo.res = pdev->resource;
@@ -589,7 +538,6 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	pinfo.data = pdata;
 	pinfo.size_data = sizeof(*pdata);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	glue->musb_pdev = platform_device_register_full(&pinfo);
 	if (IS_ERR(glue->musb_pdev)) {
 		ret = PTR_ERR(glue->musb_pdev);
@@ -597,7 +545,6 @@ printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 		goto err_device_register;
 	}
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 
 err_device_register:
@@ -615,12 +562,9 @@ static int mtk_musb_remove(struct platform_device *pdev)
 	struct mtk_glue *glue = platform_get_drvdata(pdev);
 	struct platform_device *usb_phy = glue->usb_phy;
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	platform_device_unregister(glue->musb_pdev);
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	usb_phy_generic_unregister(usb_phy);
 
-printk(KERN_ALERT "DEBUG: Passed %s %d \n",__FUNCTION__,__LINE__);
 	return 0;
 }
 
