@@ -59,14 +59,14 @@ jobs:
           bash build.sh pack_debs
           bash build.sh pack
       - name: Upload binaries to release
+        if: endsWith(github.ref,'-main') 
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${{ env.BRANCH }}-${{ env.KERNELVER }}-${{ env.DT }}"
+          automatic_release_tag: "CI-BUILD ${{ env.BRANCH }}-${{ env.KERNELVER }}-${{ env.DT }}"
           prerelease: true
           title: "Build for branch ${{ env.BRANCH }} (${{ env.KERNELVER }})"
           files: |
             ../SD/*
             ../*.deb
             *.itb
-#            *.its
